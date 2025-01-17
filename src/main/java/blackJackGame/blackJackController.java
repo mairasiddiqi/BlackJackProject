@@ -1,233 +1,262 @@
 package blackJackGame;
 
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
-import javafx.scene.control.TextField;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.control.TextField;
+import javafx.scene.control.Label;
+import javafx.scene.control.Button;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Random;
 
 public class blackJackController {
+
     @FXML
-    public ImageView playerCard1;
+    public ImageView playerCard1, playerCard2, playerCard3, playerCard4;
     @FXML
-    public ImageView playerCard2;
+    public ImageView dealerCard1, dealerCard2, dealerCard3, dealerCard4;
     @FXML
-    public ImageView playerCard3;
-    @FXML
-    public ImageView playerCard4;
-    @FXML
-    public ImageView dealerCard1;
-    @FXML
-    public ImageView dealerCard2;
-    @FXML
-    public ImageView dealerCard3;
-    @FXML
-    public ImageView dealerCard4;
-    @FXML
-    public TextField playerPoints;
-    @FXML
-    public TextField dealersPoints;
+    public TextField playerPoints, dealersPoints, playerMoneyField, betAmountField;
     @FXML
     public Label result;
     @FXML
-    public Button hit;
-    @FXML
-    public Button stay;
+    public Button stay, reset, placeBet;  // Stay, Reset and Place Bet buttons
 
-    // Game variables
-    private final ArrayList<Card> deck = new ArrayList<>(); // The deck of cards
-    private final ArrayList<Card> playerHand = new ArrayList<>(); // The player's hand
-    private final ArrayList<Card> dealerHand = new ArrayList<>(); // The dealer's hand
-    private int playerSum = 0, dealerSum = 0; // Sum of the player's and dealer's hands
+    private ArrayList<Card> deck;
+    private Random random = new Random();
+    private ArrayList<Card> dealerHand = new ArrayList<>();
+    private ArrayList<Card> playerHand = new ArrayList<>();
+    private int dealerSum, playerSum, dealerAceCount, playerAceCount;
 
-    //Initializes the game by building the deck, shuffling it, and starting the game.
+    private int playerMoney = 1000;  // Starting money
+    private int currentBet = 0;      // Current bet amount
+
+    public class Card {
+        String value;
+        String type;
+
+        Card(String value, String type) {
+            this.value = value;
+            this.type = type;
+        }
+
+        public int getValue() {
+            if ("AJQK".contains(value)) {
+                if (value.equals("A")) return 11;
+                return 10;
+            }
+            return Integer.parseInt(value);
+        }
+
+        public boolean isAce() {
+            return value.equals("A");
+        }
+
+        public String getImagePath() {
+            return "/blackJackGame/cards/" + value + "-" + type + ".png";
+        }
+    }
 
     @FXML
     public void initialize() {
-        buildDeck();  // Create and populate the deck with 52 cards
-        shuffleDeck(); // Shuffle the deck for randomness
-        startGame();   // Start a new game by dealing initial cards
+        startGame();  // Set up the game when the program starts.
+        stay.setDisable(true);  // Disable the stay button at the start of the game
+        placeBet.setDisable(false);  // Enable the place bet button
+        updatePlayerMoney();  // Show the player's money
     }
 
-    // Called when the player presses the "Hit" button.
-    // The player is dealt a new card.
-
     @FXML
-    private void onBtnHit() {
-        if (!deck.isEmpty()) {
-            Card drawnCard = drawCard(playerHand);  // Draw a card for the player
-            updatePlayerSum(drawnCard);  // Update player's hand value
-            updateCardView(playerHand, playerCard1, playerCard2, playerCard3, playerCard4); // Update UI
-            playerPoints.setText(String.valueOf(playerSum)); // Update player's points display
+    public void onCardClicked(MouseEvent event) {
+        ImageView clickedCard = (ImageView) event.getSource();
 
-            // If player's sum exceeds 21, they lose
-            if (playerSum > 21) {
-                result.setText("Bust! You Lose!"); // Display bust message
-                disableButtons(); // Disable "Hit" and "Stay" buttons
-            }
+        // Allow the player to draw a card if they haven't reached 5 cards.
+        if (playerHand.size() < 5) {
+            drawPlayerCard();
+            updateUI();
+        }
+
+        // If the player's total points exceed 21, disable the stay button.
+        if (reducePlayerAce() > 21) {
+            result.setText("You Lose!");
+            stay.setDisable(true); // Disable stay if player loses
+            updatePlayerMoney(false);  // Player lost money
         }
     }
 
-    //Called when the player presses the "Stay" button.
-    // The dealer will play their hand, and the game will be evaluated.
+    // Method to draw a card for the player
+    private void drawPlayerCard() {
+        Card card = drawCard();  // Draw a card from the deck
+        playerHand.add(card);    // Add the card to the player's hand
+        playerSum += card.getValue();  // Add the value of the card to the player's total sum
+        playerAceCount += card.isAce() ? 1 : 0;  // Count the Aces for later adjustment
+    }
 
     @FXML
-    private void onBTNStay() {
-        // Dealer draws cards until their sum is at least 17
+    public void onBtnStay() {
+        stay.setDisable(true);
+        placeBet.setDisable(true); // Disable placing bet once the player stays
+
+        // Dealer plays
         while (dealerSum < 17) {
-            Card drawnCard = drawCard(dealerHand);
-            updateDealerSum(drawnCard);  // Update dealer's hand value
-            updateCardView(dealerHand, dealerCard1, dealerCard2, dealerCard3, dealerCard4); // Update UI
+            if (deck.isEmpty()) break;
+
+            Card card = drawCard();
+            dealerSum += card.getValue();
+            dealerAceCount += card.isAce() ? 1 : 0;
+            dealerHand.add(card);
         }
 
-        dealersPoints.setText(String.valueOf(dealerSum)); // Update dealer's points display
-        evaluateWinner();  // Compare hands and display the result
+        // Final UI update and determine winner
+        updateUI();
+        determineWinner();
     }
 
-    //Creates and populates the deck of 52 cards.
+    @FXML
+    public void onBtnReset() {
+        startGame();  // Reset the game
+        result.setText("");  // Reset the result text
+        stay.setDisable(true);  // Disable stay button for the new game
+        placeBet.setDisable(false); // Re-enable the place bet button
+        updatePlayerMoney();  // Update player's money after the round
+    }
 
-    private void buildDeck() {
-        String[] values = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
-        String[] suits = {"C", "D", "H", "S"};
-
-        // Add each combination of value and suit to the deck
-        for (String suit : suits) {
-            for (String value : values) {
-                deck.add(new Card(value, suit));
+    @FXML
+    public void onPlaceBet() {
+        try {
+            int bet = Integer.parseInt(betAmountField.getText());
+            if (bet > 0 && bet <= playerMoney) {
+                currentBet = bet; // Set the current bet
+                playerMoney -= bet; // Deduct the bet from player's money
+                updatePlayerMoney();
+                startGame();  // Start the game after placing a bet
+                placeBet.setDisable(true); // Disable placing bet once the game starts
+                stay.setDisable(false);  // Enable stay button when the game starts
+            } else {
+                result.setText("Invalid bet amount!");
             }
+        } catch (NumberFormatException e) {
+            result.setText("Please enter a valid number for the bet.");
         }
     }
-
-    //Shuffles the deck to randomize the order of the cards.
-
-    private void shuffleDeck() {
-        Collections.shuffle(deck); // Shuffle the deck
-    }
-
-    //Starts a new game by dealing initial cards to the player and dealer.
 
     private void startGame() {
-        playerHand.clear();
+        buildDeck();
+        shuffleDeck();
+
         dealerHand.clear();
-        playerSum = dealerSum = 0;
+        dealerSum = 0;
+        dealerAceCount = 0;
+        playerHand.clear();
+        playerSum = 0;
+        playerAceCount = 0;
 
-        // Deal initial cards to player and dealer
-        drawInitialCards();
+        // Deal two cards to the dealer and player.
+        dealerHand.add(drawCard());
+        dealerSum += dealerHand.get(0).getValue();
+        dealerAceCount += dealerHand.get(0).isAce() ? 1 : 0;
 
-        playerPoints.setText(String.valueOf(playerSum)); // Display player's initial points
-        dealersPoints.setText("?"); // Hide dealer's points initially
-        result.setText(""); // Clear the result label
-        hit.setDisable(false); // Enable the "Hit" button
-        stay.setDisable(false); // Enable the "Stay" button
+        for (int i = 0; i < 2; i++) {
+            Card card = drawCard();
+            playerHand.add(card);
+            playerSum += card.getValue();
+            playerAceCount += card.isAce() ? 1 : 0;
+        }
+
+        updateUI();
     }
 
-    //Deals two cards to the player and dealer, then updates the UI.
-
-    private void drawInitialCards() {
-        drawCard(playerHand);
-        drawCard(playerHand);
-        drawCard(dealerHand);
-        drawCard(dealerHand);
-
-        // Update UI for the initial hand of the player and dealer
-        updateCardView(playerHand, playerCard1, playerCard2, null, null);
-        updateCardView(dealerHand, dealerCard1, dealerCard2, null, null);
-
-        // Calculate the initial sum of each hand
-        playerSum = calculateHandValue(playerHand);
-        dealerSum = calculateHandValue(dealerHand);
+    private Card drawCard() {
+        return deck.remove(deck.size() - 1); // Draw card from deck
     }
 
-     // Draws a card from the deck and adds it to the given hand.
-     // at param hand: The hand (either player's or dealer's) to which the card will be added.
-     // at return the drawn card.
+    private void buildDeck() {
+        deck = new ArrayList<>();
+        String[] values = {"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"};
+        String[] types = {"C", "D", "H", "S"};
 
-    private Card drawCard(ArrayList<Card> hand) {
-        if (deck.isEmpty()) return null; // No cards left to draw
-        Card card = deck.remove(deck.size() - 1); // Remove the top card from the deck
-        hand.add(card); // Add the drawn card to the hand
-        return card;
-    }
-
-      //Updates the image view for the cards in a given hand.
-     //@param hand The hand whose cards are to be displayed.
-     //@param cardSlots The ImageView slots to display the cards.
-
-    private void updateCardView(ArrayList<Card> hand, ImageView... cardSlots) {
-        for (int i = 0; i < hand.size(); i++) {
-            if (i < cardSlots.length && cardSlots[i] != null) {
-                String imagePath = hand.get(i).getImagePath(); // Get the image path of the card
-                cardSlots[i].setImage(new Image(getClass().getResource(imagePath).toExternalForm())); // Update the ImageView
+        for (String type : types) {
+            for (String value : values) {
+                deck.add(new Card(value, type));
             }
         }
     }
 
-
-     //Updates the player's sum based on the current hand.
-     //@param card is the newly drawn card to update the player's sum.
-
-    private void updatePlayerSum(Card card) {
-        playerSum = calculateHandValue(playerHand); // Recalculate the player's sum
+    private void shuffleDeck() {
+        for (int i = 0; i < deck.size(); i++) {
+            int j = random.nextInt(deck.size());
+            Card temp = deck.get(i);
+            deck.set(i, deck.get(j));
+            deck.set(j, temp);
+        }
     }
 
+    private void updateUI() {
+        updateCardImages(playerHand, playerCard1, playerCard2, playerCard3, playerCard4);
+        playerPoints.setText(String.valueOf(reducePlayerAce()));  // Update player points
 
-     //Updates the dealer's sum based on the current hand.
-     //@param card The newly drawn card to update the dealer's sum.
+        updateCardImages(dealerHand, dealerCard1, dealerCard2, dealerCard3, dealerCard4);
+        dealersPoints.setText(String.valueOf(dealerSum));  // Update dealer points
 
-    private void updateDealerSum(Card card) {
-        dealerSum = calculateHandValue(dealerHand); // Recalculate the dealer's sum
+        result.setText("");  // Reset the result label for a clean state
     }
 
-
-     //Calculates the total value of a hand. Aces are treated as 1 or 11, and face cards are worth 10.
-     //@param hand The hand whose total value is being calculated.
-     //@return The total value of the hand.
-
-    private int calculateHandValue(ArrayList<Card> hand) {
-        int sum = 0;
-        int aceCount = 0;
-
-        for (Card card : hand) {
-            sum += Integer.parseInt(card.getValue()); // Add card's value to the sum
-            if ("A".equals(card.getValueString())) {
-                aceCount++; // Count the number of Aces
+    private void updateCardImages(ArrayList<Card> hand, ImageView... cardViews) {
+        for (int i = 0; i < cardViews.length; i++) {
+            if (i < hand.size()) {
+                try {
+                    Image img = new Image(getClass().getResource(hand.get(i).getImagePath()).toExternalForm());
+                    cardViews[i].setImage(img);
+                } catch (Exception e) {
+                    cardViews[i].setImage(null);
+                    System.out.println("Error loading image: " + hand.get(i).getImagePath());
+                }
+            } else {
+                cardViews[i].setImage(new Image(getClass().getResource("/blackJackGame/cards/BACK.png").toExternalForm()));
             }
         }
-
-        // Adjust the sum if there are any aces and the sum exceeds 21
-        while (sum > 21 && aceCount > 0) {
-            sum -= 10; // Treat one Ace as 1 instead of 11
-            aceCount--;
-        }
-
-        return sum; // Return the total hand value
     }
 
-     //Evaluates the winner based on the final hand values and displays the result.
+    private int reducePlayerAce() {
+        int total = playerSum;
+        while (total > 21 && playerAceCount > 0) {
+            total -= 10;
+            playerAceCount--;
+        }
+        return total;
+    }
 
-    private void evaluateWinner() {
-        String message;
-        if (dealerSum > 21 || playerSum > dealerSum) {
-            message = "You Win!"; // Player wins if the dealer busts or has a lower hand value
-        } else if (playerSum < dealerSum) {
-            message = "You Lose!"; // Player loses if their hand is lower
+    private void determineWinner() {
+        // Check if the dealer busts
+        if (dealerSum > 21) {
+            result.setText("Dealer Busts! You Win!");
+            updatePlayerMoney(true);  // Player wins
+        }
+        // If player busts
+        else if (playerSum > 21) {
+            result.setText("You Lose!");
+            updatePlayerMoney(false);  // Player loses money
+        }
+        // If no busts, compare the scores
+        else if (dealerSum >= playerSum) {
+            result.setText("Dealer Wins!");
+            updatePlayerMoney(false);  // Player loses money
         } else {
-            message = "It's a Tie!"; // It's a tie if both hands have the same value
+            result.setText("You Win!");
+            updatePlayerMoney(true);  // Player wins
         }
-        result.setText(message); // Display the result
-        disableButtons(); // Disable the buttons after the game ends
     }
 
+    private void updatePlayerMoney() {
+        playerMoneyField.setText("Money: $" + playerMoney);
+    }
 
-     //Disables both the "Hit" and "Stay" buttons.
-
-    private void disableButtons() {
-        hit.setDisable(true); // Disable "Hit" button
-        stay.setDisable(true); // Disable "Stay" button
+    private void updatePlayerMoney(boolean win) {
+        if (win) {
+            playerMoney += currentBet * 2;  // Double the bet if the player wins
+        }
+        currentBet = 0;  // Reset current bet
+        updatePlayerMoney();  // Update the displayed money
     }
 }
-
