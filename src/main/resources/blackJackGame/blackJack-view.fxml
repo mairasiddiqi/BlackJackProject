@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.text.Font?>
+
+<AnchorPane prefHeight="510.0" prefWidth="900.0" xmlns="http://javafx.com/javafx/22" xmlns:fx="http://javafx.com/fxml/1" fx:controller="blackJack.blackJackController">
+   <children>
+      <ImageView fx:id="playerCard1" fitHeight="170.0" fitWidth="150.0" layoutX="30.0" layoutY="284.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="playerCard2" fitHeight="170.0" fitWidth="150.0" layoutX="153.0" layoutY="283.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="playerCard3" fitHeight="170.0" fitWidth="150.0" layoutX="275.0" layoutY="282.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="playerCard4" fitHeight="170.0" fitWidth="150.0" layoutX="395.0" layoutY="283.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <Button fx:id="hit" layoutX="126.0" layoutY="461.0" mnemonicParsing="false" onAction="#onBtnHit" prefHeight="26.0" prefWidth="142.0" text="HIT">
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </Button>
+      <Button fx:id="stay" layoutX="285.0" layoutY="461.0" mnemonicParsing="false" onAction="#onBTNStay" prefHeight="26.0" prefWidth="142.0" text="STAY">
+         <padding>
+            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+         </padding>
+      </Button>
+      <TextField fx:id="playerPoints" layoutX="522.0" layoutY="301.0" prefHeight="41.0" prefWidth="160.0" />
+      <Label fx:id="result1" alignment="CENTER" layoutX="33.0" layoutY="244.0" prefHeight="38.0" prefWidth="180.0" text="PLAYER'S CARDS">
+         <font>
+            <Font name="Apple Chancery" size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="result11" alignment="CENTER" layoutX="513.0" layoutY="263.0" prefHeight="38.0" prefWidth="176.0" text="Players Points">
+         <font>
+            <Font name="Apple Chancery" size="17.0" />
+         </font>
+      </Label>
+      <Label fx:id="result12" alignment="CENTER" layoutX="258.0" layoutY="2.0" prefHeight="38.0" prefWidth="369.0" text="BLACK JACK GAME">
+         <font>
+            <Font name="Fahkwang SemiBold" size="20.0" />
+         </font>
+      </Label>
+      <ImageView fx:id="dealerCard1" fitHeight="170.0" fitWidth="150.0" layoutX="32.0" layoutY="61.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="dealerCard2" fitHeight="170.0" fitWidth="150.0" layoutX="155.0" layoutY="60.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="dealerCard3" fitHeight="170.0" fitWidth="150.0" layoutX="277.0" layoutY="59.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <ImageView fx:id="dealerCard4" fitHeight="170.0" fitWidth="150.0" layoutX="397.0" layoutY="60.0" pickOnBounds="true" preserveRatio="true">
+         <image>
+            <Image url="@../../../../../MairaASEProject/src/main/resources/blackJack/image/back%20of%20card.png" />
+         </image>
+      </ImageView>
+      <TextField fx:id="dealersPoints" layoutX="524.0" layoutY="78.0" prefHeight="41.0" prefWidth="160.0" />
+      <Label fx:id="result13" alignment="CENTER" layoutX="35.0" layoutY="21.0" prefHeight="38.0" prefWidth="188.0" text="DEALERS CARDS">
+         <font>
+            <Font name="Apple Chancery" size="20.0" />
+         </font>
+      </Label>
+      <Label fx:id="result111" alignment="CENTER" layoutX="515.0" layoutY="40.0" prefHeight="38.0" prefWidth="176.0" text="Dealers Points">
+         <font>
+            <Font name="Apple Chancery" size="17.0" />
+         </font>
+      </Label>
+      <Label fx:id="result" alignment="CENTER" layoutX="701.0" layoutY="195.0" prefHeight="38.0" prefWidth="176.0">
+         <font>
+            <Font name="Apple Chancery" size="17.0" />
+         </font>
+      </Label>
+   </children>
+        </AnchorPane>
