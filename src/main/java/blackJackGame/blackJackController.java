@@ -95,7 +95,7 @@ public class blackJackController {
 
     @FXML
     public void onBtnStay() {
-        stay.setDisable(true);
+        //stay.setDisable(true);   // Disable Stay after the player chooses it
         placeBet.setDisable(true); // Disable placing bet once the player stays
 
         // Dealer plays
@@ -115,11 +115,11 @@ public class blackJackController {
 
     @FXML
     public void onBtnReset() {
-        startGame();  // Reset the game
+        startGame();  // Reset the game state
         result.setText("");  // Reset the result text
-        stay.setDisable(true);  // Disable stay button for the new game
+        stay.setDisable(true);  // Disable Stay button for the new game
         placeBet.setDisable(false); // Re-enable the place bet button
-        updatePlayerMoney();  // Update player's money after the round
+        updatePlayerMoney();  // Update the player's money display
     }
 
     @FXML
@@ -129,7 +129,7 @@ public class blackJackController {
             if (bet > 0 && bet <= playerMoney) {
                 currentBet = bet; // Set the current bet
                 playerMoney -= bet; // Deduct the bet from player's money
-                updatePlayerMoney();
+                updatePlayerMoney();  // Update player money display
                 startGame();  // Start the game after placing a bet
                 placeBet.setDisable(true); // Disable placing bet once the game starts
                 stay.setDisable(false);  // Enable stay button when the game starts
@@ -227,19 +227,31 @@ public class blackJackController {
         return total;
     }
 
-    private void determineWinner() {
-        // Check if the dealer busts
-        if (dealerSum > 21) {
-            result.setText("Dealer Busts! You Win!");
-            updatePlayerMoney(true);  // Player wins
+    private int reduceDealerAce() {
+        int total = dealerSum;
+        while (total > 21 && dealerAceCount > 0) {
+            total -= 10;
+            dealerAceCount--;
         }
+        return total;
+    }
+
+    private void determineWinner() {
+        int adjustedPlayerTotal = reducePlayerAce();  // Final player total after Ace adjustments
+        int adjustedDealerTotal = reduceDealerAce();  // Final dealer total after Ace adjustments
+
         // If player busts
-        else if (playerSum > 21) {
+        if (adjustedPlayerTotal > 21) {
             result.setText("You Lose!");
             updatePlayerMoney(false);  // Player loses money
         }
-        // If no busts, compare the scores
-        else if (dealerSum >= playerSum) {
+        // If dealer busts
+        else if (adjustedDealerTotal > 21) {
+            result.setText("Dealer Busts! You Win!");
+            updatePlayerMoney(true);  // Player wins
+        }
+        // Compare totals if no one busts
+        else if (adjustedDealerTotal >= adjustedPlayerTotal) {
             result.setText("Dealer Wins!");
             updatePlayerMoney(false);  // Player loses money
         } else {
@@ -249,7 +261,7 @@ public class blackJackController {
     }
 
     private void updatePlayerMoney() {
-        playerMoneyField.setText("Money: $" + playerMoney);
+        playerMoneyField.setText("Money: $" + playerMoney);  // Update the money display
     }
 
     private void updatePlayerMoney(boolean win) {
